@@ -132,7 +132,6 @@ pub async fn delete(
 #[poise::command(slash_command, prefix_command)]
 pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
     let birthdays = get_birthdays().expect("Failed to get birthdays.");
-    println!("{:?}", &ctx);
     let mut hashmap = HashMap::new();
     for birthday in birthdays {
         let month = birthday.birthday.month();

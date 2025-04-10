@@ -4,7 +4,7 @@ use std::sync::Arc;
 use birthdays::*;
 use chrono::{DateTime, Datelike, Utc};
 use poise::serenity_prelude::{
-    self as serenity, ChannelId, CreateEmbedFooter, CreateMessage, Mention, UserId,
+    self as serenity, ChannelId, CreateEmbedFooter, CreateMessage, Mention, Mentionable, UserId,
 };
 use rusqlite::Connection;
 
@@ -111,7 +111,8 @@ async fn main() {
                         if !birthdays_today.is_empty() {
                             for birthday in birthdays_today {
                                 let embed = build_embed(birthday);
-                                let message = CreateMessage::new().embed(embed);
+                                let message =
+                                    CreateMessage::new().embed(embed).content("@everyone");
                                 let ctx = Arc::clone(&ctx_2);
                                 {
                                     send(
@@ -142,7 +143,7 @@ fn build_embed(person: Person) -> serenity::builder::CreateEmbed {
     serenity::builder::CreateEmbed::default()
         .title(format!("{}'s Birthday", person.name))
         .description(format!(
-            "It's {}'s birthday! Don't forget the chocolates and the birthday bumps! ",
+            "@everyone, It's {}'s birthday! Don't forget the chocolates and the birthday bumps!",
             Mention::from(UserId::new(person.user_id))
         ))
         .color(serenity::Colour::GOLD)
