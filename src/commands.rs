@@ -55,6 +55,7 @@ pub async fn set(
     #[description = "Name"] name: String,
     #[description = "Birthday (DD-MM-YYYY)"] date: String,
 ) -> anyhow::Result<(), Error> {
+    let date = date.replace("/", "-");
     let avatar = user.avatar_url().unwrap_or_default();
     let date = NaiveDate::parse_from_str(&date, "%d-%m-%Y")?;
     let date = DateTime::from_naive_utc_and_offset(date.into(), Utc);
