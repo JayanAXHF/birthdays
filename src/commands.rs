@@ -11,6 +11,7 @@ use poise::{
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
+/// Main Command for Birthday-related actions
 #[poise::command(
     slash_command,
     prefix_command,
@@ -21,13 +22,17 @@ pub async fn birthday(_ctx: Context<'_>) -> anyhow::Result<(), Error> {
     Ok(())
 }
 
+/// Gets a specific user's birthday.
 #[poise::command(slash_command, prefix_command)]
 pub async fn get(
     ctx: Context<'_>,
     #[description = "The user who's birthday to get"] user: User,
 ) -> anyhow::Result<(), Error> {
     let avatar = user.avatar_url().unwrap_or_default();
-    let person = get_birthday(user.id.get())?;
+    let person = get_birthday(user.id.get()).expect(
+        "Failed to get birthday. Check if the user exists and if they have a birthday set.",
+    );
+
     let embed = CreateEmbed::new().title(format!("{}'s Birthday", person.name));
     let embed = embed.description(format!(
         "Birthday is {}",
@@ -137,9 +142,14 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
     let embed = CreateEmbed::new().title("Birthdays");
     let mut fields = vec![];
     for (month, fmt) in hashmap {
-        let field = (to_month(month).name().to_string(), fmt.join("\n"), false);
+        let field = (month, fmt.join("\n"), false);
         fields.push(field);
     }
+    fields.sort_by(|a, b| a.0.cmp(&b.0));
+    let fields = fields.into_iter().map(|(month, fmt, _)| {
+        let month = to_month(month);
+        (month.name().to_string(), fmt, false)
+    });
     let embed = embed
         .fields(fields)
         .color(Colour::GOLD)
@@ -152,3 +162,4 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
 
     Ok(())
 }
+
