@@ -52,9 +52,10 @@ pub async fn get(
 pub async fn set(
     ctx: Context<'_>,
     #[description = "The user who's birthday to get"] user: User,
-    #[description = "Name"] name: String,
+    #[description = "Name"] name: Option<String>,
     #[description = "Birthday (DD-MM-YYYY)"] date: String,
 ) -> anyhow::Result<(), Error> {
+    let name = name.unwrap_or_else(|| user.display_name().to_owned());
     let date = date.replace("/", "-");
     let avatar = user.avatar_url().unwrap_or_default();
     let date = NaiveDate::parse_from_str(&date, "%d-%m-%Y")?;
