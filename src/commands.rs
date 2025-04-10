@@ -47,18 +47,20 @@ pub async fn get(
     Ok(())
 }
 
+/// Adds a new birthday for a user. Use `/birthday edit` to edit an existing birthday.
 #[poise::command(slash_command, prefix_command)]
 pub async fn set(
     ctx: Context<'_>,
     #[description = "The user who's birthday to get"] user: User,
     #[description = "Name"] name: String,
-    #[description = "Birthday"] date: String,
+    #[description = "Birthday (DD-MM-YYYY)"] date: String,
 ) -> anyhow::Result<(), Error> {
     let avatar = user.avatar_url().unwrap_or_default();
     let date = NaiveDate::parse_from_str(&date, "%d-%m-%Y")?;
     let date = DateTime::from_naive_utc_and_offset(date.into(), Utc);
     let person = Person::new(date, name.clone(), user.id.get());
-    add_birthday(person)?;
+    add_birthday(person)
+        .expect("Failed to add birthday. Check id the user already has a birthday set.");
     let embed = CreateEmbed::new()
         .title(format!("Added new Birthday for {}", name))
         .description(format!(
@@ -77,16 +79,18 @@ pub async fn set(
     Ok(())
 }
 
+/// Edits an existing birthday for a user.
 #[poise::command(slash_command, prefix_command)]
 pub async fn edit(
     ctx: Context<'_>,
     #[description = "The user who's birthday to get"] user: User,
-    #[description = "New Birthday"] new_birthday: String,
+    #[description = "New Birthday (dd-mm-YYYY)"] new_birthday: String,
 ) -> anyhow::Result<(), Error> {
+    let new_birthday = new_birthday.replace("/", "-");
     let avatar = user.avatar_url().unwrap_or_default();
     let new_birthday = NaiveDate::parse_from_str(&new_birthday, "%d-%m-%Y")?;
     let new_birthday = DateTime::from_naive_utc_and_offset(new_birthday.into(), Utc);
-    let _ = edit_birthday(user.id.get(), new_birthday);
+    edit_birthday(user.id.get(), new_birthday).expect("Check if the user has a birthday set.");
     let embed = CreateEmbed::new()
         .title(format!("Edited Birthday for {}", user.name))
         .description(format!(
@@ -104,12 +108,13 @@ pub async fn edit(
     Ok(())
 }
 
+/// Deletes an existing birthday for a user.
 #[poise::command(slash_command, prefix_command)]
 pub async fn delete(
     ctx: Context<'_>,
     #[description = "The user who's birthday to get"] user: User,
 ) -> anyhow::Result<(), Error> {
-    let _ = delete_birthday(user.id.get());
+    delete_birthday(user.id.get()).expect("Check if the user has a birthday set.");
     let avatar = user.avatar_url().unwrap_or_default();
     let embed = CreateEmbed::new()
         .title(format!("Deleted Birthday for {}", user.name))
@@ -126,7 +131,8 @@ pub async fn delete(
 
 #[poise::command(slash_command, prefix_command)]
 pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
-    let birthdays = get_birthdays()?;
+    let birthdays = get_birthdays().expect("Failed to get birthdays.");
+    println!("{:?}", &ctx);
     let mut hashmap = HashMap::new();
     for birthday in birthdays {
         let month = birthday.birthday.month();
@@ -139,6 +145,7 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
         month_vec.push(fmt);
         hashmap.insert(month, month_vec.to_vec());
     }
+
     let embed = CreateEmbed::new().title("Birthdays");
     let mut fields = vec![];
     for (month, fmt) in hashmap {
@@ -153,7 +160,7 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
     let embed = embed
         .fields(fields)
         .color(Colour::GOLD)
-        .description("Use `/birthday set` to add your birthday!");
+        .description("Use `/birthday set` to add your birthday!").thumbnail("https://cdn.discordapp.com/avatars/1359476717348983016/434aef6416cf25985d812929b85a4ec3?size=256");
     let reply = CreateReply {
         embeds: vec![embed],
         ..Default::default()
@@ -162,4 +169,3 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
 
     Ok(())
 }
-
