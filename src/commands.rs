@@ -169,3 +169,27 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
 
     Ok(())
 }
+
+#[poise::command(slash_command)]
+pub async fn age(ctx: Context<'_>, user: Option<User>) -> anyhow::Result<(), Error> {
+    let user = user.unwrap_or_else(|| {
+        let x = ctx.author().to_owned();
+        x
+    });
+    let birthday = get_birthday(user.id.get()).expect(
+        "Failed to get birthday. Check if the user exists and if they have a birthday set.",
+    );
+    let age = birthday.age();
+    let embed = CreateEmbed::new().title(format!("{}'s Age", birthday.name));
+    let embed = embed.description(format!("{} is {} years old", Mention::from(user.id), age));
+    let embed = embed
+        .thumbnail(user.avatar_url().unwrap_or_default())
+        .color(Colour::TEAL);
+    let message = CreateReply {
+        embeds: vec![embed],
+        ..Default::default()
+    };
+    ctx.send(message).await?;
+
+    Ok(())
+}

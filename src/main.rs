@@ -89,7 +89,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![crate::commands::birthday()],
+            commands: vec![crate::commands::birthday(), crate::commands::age()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
