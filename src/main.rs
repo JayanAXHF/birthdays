@@ -7,6 +7,7 @@ use poise::serenity_prelude::{
     self as serenity, ChannelId, CreateEmbedFooter, CreateMessage, Mention, Mentionable, UserId,
 };
 use rusqlite::Connection;
+use tracing::{error, info};
 
 #[derive(Debug)]
 struct Data {} // User data, which is stored and accessible in all command invocations
@@ -97,19 +98,20 @@ async fn main() {
         })
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
+                tracing_subscriber::fmt::init();
                 let ctx_2 = Arc::new(ctx.clone());
                 tokio::task::spawn(async move {
                     if let Err(e) = init_db() {
-                        println!("Failed to initialize database: {}", e);
+                        error!("Failed to initialize database: {}", e);
                     }
                     let mut interval =
                         tokio::time::interval(std::time::Duration::from_secs(86_400));
                     loop {
                         let announcements_channel_id = ChannelId::new(1338908758218117210);
-                        println!("Starting birthdays...");
+                        info!("Starting birthdays...");
                         interval.tick().await;
                         let birthdays_today = fetch_birthdays_today().unwrap();
-                        println!("Birthdays today: {:?}", birthdays_today);
+                        info!(?birthdays_today);
 
                         if !birthdays_today.is_empty() {
                             for birthday in birthdays_today {
@@ -175,11 +177,7 @@ fn fetch_birthdays_today() -> anyhow::Result<Vec<Person>> {
         let name: String = person.get(2).unwrap();
 
         let birthday = DateTime::from_timestamp(birthday, 0).unwrap();
-        println!(
-            "Birthday: {:?} --- {:?}",
-            birthday.date_naive(),
-            date.date_naive()
-        );
+
         if birthday.month() == date.month() && date.day() == birthday.day() {
             birthdays_today.push(Person::new(birthday, name, user_id.try_into()?));
         }
