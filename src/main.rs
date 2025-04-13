@@ -43,6 +43,9 @@ fn get_birthday(user_id: u64) -> anyhow::Result<Person> {
     let mut stmt = conn.prepare("SELECT * FROM birthdays WHERE user_id = ?")?;
     let mut rows = stmt.query([user_id])?;
     let person = rows.next()?;
+    if person.is_none() {
+        return Err(anyhow::anyhow!("No birthday found for user {}", user_id));
+    }
     Ok(Person::new(
         DateTime::from_timestamp(person.unwrap().get(1)?, 0).unwrap(),
         person.unwrap().get(2)?,

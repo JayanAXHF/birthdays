@@ -29,9 +29,7 @@ pub async fn get(
     #[description = "The user who's birthday to get"] user: User,
 ) -> anyhow::Result<(), Error> {
     let avatar = user.avatar_url().unwrap_or_default();
-    let person = get_birthday(user.id.get()).expect(
-        "Failed to get birthday. Check if the user exists and if they have a birthday set.",
-    );
+    let person = get_birthday(user.id.get())?;
 
     let embed = CreateEmbed::new().title(format!("{}'s Birthday", person.name));
     let embed = embed.description(format!(
