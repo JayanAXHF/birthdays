@@ -87,6 +87,7 @@ fn get_birthdays() -> Result<Vec<Person>, Error> {
 }
 
 #[tokio::main]
+#[tracing::instrument]
 async fn main() {
     let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
     let intents = serenity::GatewayIntents::non_privileged();

@@ -18,11 +18,13 @@ type Context<'a> = poise::Context<'a, Data, Error>;
     subcommands("get", "set", "edit", "delete", "list"),
     subcommand_required
 )]
+#[tracing::instrument(skip(_ctx))]
 pub async fn birthday(_ctx: Context<'_>) -> anyhow::Result<(), Error> {
     Ok(())
 }
 
 /// Gets a specific user's birthday.
+#[tracing::instrument(skip(ctx))]
 #[poise::command(slash_command, prefix_command)]
 pub async fn get(
     ctx: Context<'_>,
@@ -46,6 +48,7 @@ pub async fn get(
 }
 
 /// Adds a new birthday for a user. Use `/birthday edit` to edit an existing birthday.
+#[tracing::instrument(skip(ctx))]
 #[poise::command(slash_command, prefix_command)]
 pub async fn set(
     ctx: Context<'_>,
@@ -80,6 +83,7 @@ pub async fn set(
 }
 
 /// Edits an existing birthday for a user.
+#[tracing::instrument(skip(ctx))]
 #[poise::command(slash_command, prefix_command)]
 pub async fn edit(
     ctx: Context<'_>,
@@ -109,6 +113,7 @@ pub async fn edit(
 }
 
 /// Deletes an existing birthday for a user.
+#[tracing::instrument(skip(ctx))]
 #[poise::command(slash_command, prefix_command)]
 pub async fn delete(
     ctx: Context<'_>,
@@ -130,6 +135,7 @@ pub async fn delete(
 }
 
 #[poise::command(slash_command, prefix_command)]
+#[tracing::instrument(skip(ctx))]
 pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
     let birthdays = get_birthdays().expect("Failed to get birthdays.");
     let mut hashmap = HashMap::new();
@@ -170,6 +176,7 @@ pub async fn list(ctx: Context<'_>) -> anyhow::Result<(), Error> {
 }
 
 #[poise::command(slash_command)]
+#[tracing::instrument(skip(ctx))]
 pub async fn age(ctx: Context<'_>, user: Option<User>) -> anyhow::Result<(), Error> {
     let user = user.unwrap_or_else(|| {
         let x = ctx.author().to_owned();
