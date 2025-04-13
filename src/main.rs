@@ -91,6 +91,7 @@ fn get_birthdays() -> Result<Vec<Person>, Error> {
 async fn main() {
     let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
     let intents = serenity::GatewayIntents::non_privileged();
+    tracing_subscriber::fmt::init();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -99,7 +100,6 @@ async fn main() {
         })
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
-                tracing_subscriber::fmt::init();
                 let ctx_2 = Arc::new(ctx.clone());
                 tokio::task::spawn(async move {
                     if let Err(e) = init_db() {
